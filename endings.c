@@ -21,7 +21,7 @@ int main(int argc, char **argv)
         if (wild) {
             scandir(".",argv[1]);
         } else {
-            scandir(argv[1],"*");
+            scandir(argv[1],NULL);
         }
     } else {
         scandir(".",NULL);
@@ -56,7 +56,7 @@ int scandir(const char *path, const char *match)
             scandir(buf,match);                              //   Recurse
         } else {                                             // Else
             if (f.nFileSizeLow == 0) continue;               //   Skip empty files
-            if (match != NULL)                               //   If a match spec
+            if (match)                                       //   If a match spec
                 if (! PathMatchSpec(f.cFileName,match))      //     Skip unmatched files
                     continue;
             checkendings(buf);                               //   Check line endings
