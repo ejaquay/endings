@@ -1,0 +1,25 @@
+The endings program searches a directory for files that appear
+to be text and reports the type of line ending they use. 
+
+There are two optional arguments, a directory name and a 
+wildcard match expression.  For example:
+
+  C> endings .. *.c
+    LF    ..\buffer\aciabuf.c
+    LF    ..\buffer\buffer.c
+    LF    ..\buffer\test.c
+    CRLF  ..\console\clear_screen.c
+    CRLF  ..\console\getkey.c
+    CRLF  ..\console\llgetkey.c
+    CRLF  ..\console\llinput.c
+    LF    ..\console\scroll.c
+    CRLF  ..\console\setcolor.c
+    ....
+
+To build endings.exe launch a development command prompt, cd to
+this directory and type "cl endings.c"
+
+
+
+
+
