@@ -1,8 +1,8 @@
 Endings is a Windows program that searches a directory tree for files 
 that appear to be text and reports the type of line ending they use. 
 
-There are two optional arguments, a directory name and a wildcard
-filename match expression.  For example:
+There are two optional arguments, a path and a match expression.
+For example:
 
   C> endings .. *.c
     LF    ..\buffer\aciabuf.c
@@ -16,9 +16,13 @@ filename match expression.  For example:
     CRLF  ..\console\setcolor.c
     ....
 
-If there are no arguments directory and match default to '.' and '*'
+If there are no arguments the path and match default to '.' and '*'
 If there is one argument endings determines if the argument is a
 path or wildcard match and defaults the other to a reasonable value.
+
+Endings skips over files with extensions typical for binary files
+and also skips over .git subdirectories. If you don't like these
+features change the code to suit.
 
 To build endings.exe launch a development command prompt, cd to
 this directory and type "cl endings.c"

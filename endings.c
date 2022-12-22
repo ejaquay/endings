@@ -8,28 +8,39 @@
 #include <shlwapi.h>
 #pragma comment(lib, "Shlwapi.lib")
 
-int checkendings(const char *);
-int scandir(const char *,const char *);
-int istypebin(const char *);
+int checkendings(const char *);           // Report file line ending types
+int scantree(const char *,const char *);  // Scan tree for files that match
+int istypebin(const char *);              // Check extension for binary types
 
+int ChSk=0; // path chars skipped when printing
+
+// Call scantree with args filled in
 int main(int argc, char **argv)
 {
+    char * path;
+    char * match;
+
     if (argc > 2) {
-        scandir(argv[1],argv[2]);
+        path = argv[1];
+        match = argv[2];
     } else if (argc > 1) {
-        char * wild=strpbrk(argv[1],"*?");
-        if (wild) {
-            scandir(".",argv[1]);
+        if (strpbrk(argv[1],"*?")) {
+            path = "."; ChSk = 2;
+            match = argv[1];
         } else {
-            scandir(argv[1],NULL);
+            path = argv[1];
+            match = NULL;
         }
     } else {
-        scandir(".",NULL);
+        path = "."; ChSk = 2;
+        match = NULL;
     }
+    scantree(path,match);
     return 1;
 }
 
-int scandir(const char *path, const char *match)
+// Scan tree for matching files and check their endings
+int scantree(const char *path, const char *match)
 {
     WIN32_FIND_DATA f;
     HANDLE h;
@@ -53,7 +64,8 @@ int scandir(const char *path, const char *match)
         if (f.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) { // If a sub directory
             if (strcmp(f.cFileName,".") == 0) continue;      //   Skip current
             if (strcmp(f.cFileName,"..") == 0) continue;     //   Skip parent
-            scandir(buf,match);                              //   Recurse
+            if (strcmp(f.cFileName,".git") == 0) continue;   //   Skip .git subdir
+            scantree(buf,match);                             //   Recurse
         } else {                                             // Else
             if (f.nFileSizeLow == 0) continue;               //   Skip empty files
             if (match)                                       //   If a match spec
@@ -67,6 +79,8 @@ int scandir(const char *path, const char *match)
     return 1;
 }
 
+// Count file endings and report results.  Skip
+// that have known extensions of binary files.
 int checkendings(const char *file)
 {
     FILE *in;
@@ -79,7 +93,8 @@ int checkendings(const char *file)
     in = fopen(file, "rb");                 // Open file for bin read
     if (in == NULL) return 0;               // Abort if open failed
 
-    int ch;                                 // Count CR, LF, and CRLF
+    // Count CR, LF, and CRLF endings in file
+    int ch;
     while ((ch = fgetc(in)) != EOF) {
         switch (ch) {
         case '\r':                          // CR found
@@ -100,13 +115,14 @@ int checkendings(const char *file)
     }
     fclose(in);                              // Close the file
 
-    int lines = num_cr + num_lf + num_crlf;  // Sum the lines
-    if (num_cr == lines) {                   // Text all lines CR
-        printf(" CR    %s\n", file);
-    } else if (num_lf == lines) {            // Text all lines LF
-        printf(" LF    %s\n", file);
-    } else if (num_crlf == lines) {          // Text all lines CRLF
-        printf(" CRLF  %s\n", file);
+    // Report results for files with consistent endings.
+    int lines = num_cr + num_lf + num_crlf;
+    if (num_cr == lines) {                   // All line endings CR
+        printf(" CR    %s\n", file+ChSk);
+    } else if (num_lf == lines) {            // All line endings LF
+        printf(" LF    %s\n", file+ChSk);
+    } else if (num_crlf == lines) {          // All line endings CRLF
+        printf(" CRLF  %s\n", file+ChSk);
     }
     return 1;
 }
@@ -127,8 +143,6 @@ int istypebin(const char *file)
         ".res",
         ".tlog",
         ".ico",
-        ".db",
-        ".pack",
         ".zip",
         ".idx",
         ".dsk",
